@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		84067B2B2B3B2EF1000B6503 /* SlotColumnVIew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84067B2A2B3B2EF1000B6503 /* SlotColumnVIew.swift */; };
 		84067B2D2B3B2F32000B6503 /* SlotColumnViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84067B2C2B3B2F32000B6503 /* SlotColumnViewModel.swift */; };
+		84067B2F2B3C48D7000B6503 /* SlotMachineViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84067B2E2B3C48D7000B6503 /* SlotMachineViewModel.swift */; };
 		8454A3F22B39A74900C15A41 /* slotsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8454A3F12B39A74900C15A41 /* slotsApp.swift */; };
 		8454A3F42B39A74900C15A41 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8454A3F32B39A74900C15A41 /* ContentView.swift */; };
 		8454A3F62B39A74B00C15A41 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8454A3F52B39A74B00C15A41 /* Assets.xcassets */; };
@@ -18,6 +19,7 @@
 /* Begin PBXFileReference section */
 		84067B2A2B3B2EF1000B6503 /* SlotColumnVIew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlotColumnVIew.swift; sourceTree = "<group>"; };
 		84067B2C2B3B2F32000B6503 /* SlotColumnViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlotColumnViewModel.swift; sourceTree = "<group>"; };
+		84067B2E2B3C48D7000B6503 /* SlotMachineViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlotMachineViewModel.swift; sourceTree = "<group>"; };
 		8454A3EE2B39A74900C15A41 /* slots.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = slots.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8454A3F12B39A74900C15A41 /* slotsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = slotsApp.swift; sourceTree = "<group>"; };
 		8454A3F32B39A74900C15A41 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -61,6 +63,7 @@
 				8454A3F72B39A74B00C15A41 /* Preview Content */,
 				84067B2A2B3B2EF1000B6503 /* SlotColumnVIew.swift */,
 				84067B2C2B3B2F32000B6503 /* SlotColumnViewModel.swift */,
+				84067B2E2B3C48D7000B6503 /* SlotMachineViewModel.swift */,
 			);
 			path = slots;
 			sourceTree = "<group>";
@@ -144,6 +147,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				84067B2D2B3B2F32000B6503 /* SlotColumnViewModel.swift in Sources */,
+				84067B2F2B3C48D7000B6503 /* SlotMachineViewModel.swift in Sources */,
 				8454A3F42B39A74900C15A41 /* ContentView.swift in Sources */,
 				8454A3F22B39A74900C15A41 /* slotsApp.swift in Sources */,
 				84067B2B2B3B2EF1000B6503 /* SlotColumnVIew.swift in Sources */,

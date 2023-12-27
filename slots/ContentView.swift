@@ -8,38 +8,48 @@
 import SwiftUI
 
 struct ContentView: View {
-    var viewModels = [
-        SlotColumnViewModel(size: 50),
-        SlotColumnViewModel(size: 50),
-        SlotColumnViewModel(size: 50),
-        SlotColumnViewModel(size: 50),
-        SlotColumnViewModel(size: 50),
-        SlotColumnViewModel(size: 50),
-        SlotColumnViewModel(size: 50),
-        SlotColumnViewModel(size: 50),
-    ]
+    @StateObject var viewModel = SlotMachineViewModel(columns: 4, rows: 3, columnSize: 70)
+    
+    var width: CGFloat {
+        CGFloat(viewModel.slotColumnsVM.count) * viewModel.slotColumnSize
+    }
+    
+    var height: CGFloat {
+        CGFloat(viewModel.rows) * viewModel.slotColumnSize
+    }
+    
     var body: some View {
         VStack {
-            HStack(spacing: 0) {
-                ForEach(viewModels, id: \.id) { viewModel in
-                    SlotColumnView(viewModel: viewModel)
+            if viewModel.isResultPresented {
+                VStack(spacing: 0) {
+                    ForEach(0..<viewModel.resultSlots.count, id: \.self) { row in
+                        HStack(spacing: 0) {
+                            ForEach(0..<viewModel.resultSlots[row].count, id: \.self) { column in
+                                Image("slot\(viewModel.resultSlots[row][column])")
+                                    .resizable()
+                                    .frame(width: viewModel.slotColumnSize, height: viewModel.slotColumnSize)
+                                    .overlay(.green.opacity(viewModel.winFlags[row][column] ? 0.5 : 0))
+                            }
+                        }
+                    }
                 }
-            }
-            .frame(width: 400, height: 200, alignment: .top)
-            .clipShape(.rect)
-            
-            Button("SPIN") {
-                Task {
-                    for viewModel in viewModels {
-    //                    viewModel.slots = [1, 2, 3, 4, 5, 6, 7]
-                        viewModel.spin(count: 70, initialTimeInterval: 0.02)
-                        try? await Task.sleep(nanoseconds: 100_000_000)
+            } else {
+                HStack(spacing: 0) {
+                    ForEach(viewModel.slotColumnsVM, id: \.id) { slotColumn in
+                        SlotColumnView(viewModel: slotColumn)
                     }
                 }
             }
-            .padding()
-            .buttonStyle(.borderedProminent)
+            
         }
+        .frame(width: width, height: height, alignment: .top)
+        .clipShape(.rect)
+        
+        Button("SPIN") {
+            viewModel.spin()
+        }
+        .padding()
+        .buttonStyle(.borderedProminent)
     }
 }
 

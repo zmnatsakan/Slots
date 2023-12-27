@@ -21,3 +21,7 @@ struct SlotColumnView: View {
         .offset(y: viewModel.offset)
     }
 }
+
+#Preview {
+    SlotColumnView()
+}
