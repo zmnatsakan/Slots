@@ -14,8 +14,47 @@ final class SlotMachineViewModel: ObservableObject {
     @Published var rows = 3
     
     @Published var isResultPresented = false
+    @Published var guaranteedWin = false
+    @Published var guaranteedLose = false
     
-    var winFlags: [[Bool]] {
+    var winFlags = [[Bool]]()
+    var winLines = [[(Int, Int)]]()
+    
+    func generateLines(startingAt row: Int, col: Int) -> [[(Int, Int)]] {
+        var lines = [[(row, col)]]
+        var extendedLines = [[(row, col)]]
+        let rowCount = resultSlots.count
+        let colCount = resultSlots[0].count
+        
+        // Extend each line until it has 5 elements, moving right and diagonally
+        while let line = extendedLines.popLast() {
+            if line.count == colCount {
+                lines.append(line)
+                continue
+            }
+            
+            let (lastRow, lastCol) = line.last!
+            
+            // Move right if possible
+            if lastCol + 1 < colCount {
+                extendedLines.append(line + [(lastRow, lastCol + 1)])
+            }
+            
+            // Move diagonally up if possible
+            if lastRow - 1 >= 0 && lastCol + 1 < colCount {
+                extendedLines.append(line + [(lastRow - 1, lastCol + 1)])
+            }
+            
+            // Move diagonally down if possible
+            if lastRow + 1 < rowCount && lastCol + 1 < colCount {
+                extendedLines.append(line + [(lastRow + 1, lastCol + 1)])
+            }
+        }
+        
+        return lines.filter { $0.count == colCount }
+    }
+    
+    func setWinFlags() {
         let result = resultSlots
         
         let rowCount = result.count
@@ -23,37 +62,7 @@ final class SlotMachineViewModel: ObservableObject {
         var winFlags = Array(repeating: Array(repeating: false, count: colCount), count: rowCount)
         
         // Helper function to generate all lines of length 5 starting from each position
-        func generateLines(startingAt row: Int, col: Int) -> [[(Int, Int)]] {
-            var lines = [[(row, col)]]
-            var extendedLines = [[(row, col)]]
-            
-            // Extend each line until it has 5 elements, moving right and diagonally
-            while let line = extendedLines.popLast() {
-                if line.count == colCount {
-                    lines.append(line)
-                    continue
-                }
-                
-                let (lastRow, lastCol) = line.last!
-                
-                // Move right if possible
-                if lastCol + 1 < colCount {
-                    extendedLines.append(line + [(lastRow, lastCol + 1)])
-                }
-                
-                // Move diagonally up if possible
-                if lastRow - 1 >= 0 && lastCol + 1 < colCount {
-                    extendedLines.append(line + [(lastRow - 1, lastCol + 1)])
-                }
-                
-                // Move diagonally down if possible
-                if lastRow + 1 < rowCount && lastCol + 1 < colCount {
-                    extendedLines.append(line + [(lastRow + 1, lastCol + 1)])
-                }
-            }
-            
-            return lines.filter { $0.count == colCount }
-        }
+
         
         // Generate all possible lines
         var allLines = [[(Int, Int)]]()
@@ -66,13 +75,14 @@ final class SlotMachineViewModel: ObservableObject {
             let lineValues = line.map { result[$0.0][$0.1] }
             if Set(lineValues).count == 1 {
                 // Mark winning symbols
+                winLines.append(line)
                 for (row, col) in line {
                     winFlags[row][col] = true
                 }
             }
         }
         
-        return winFlags
+        self.winFlags = winFlags
     }
     
     var resultSlots: [[Int]] {
@@ -87,26 +97,71 @@ final class SlotMachineViewModel: ObservableObject {
     }
     
     init(columns: Int = 3, rows: Int = 3, columnSize: CGFloat = 100) {
-        for _ in 0..<columns {
-            self.slotColumnsVM.append(SlotColumnViewModel(size: columnSize))
-        }
-        self.rows = rows
-        self.slotColumnSize = columnSize
+        setupSlots(columns: columns, rows: rows, columnSize: columnSize)
     }
     
-    @MainActor func spin() {
-        Task {
-            isResultPresented = false
-            for slotColumn in slotColumnsVM {
-                for i in 0..<slotColumn.slots.count {
-                    slotColumn.slots[i] = Int.random(in: 1...3)
-                }
-                slotColumn.spin(count: 70, initialTimeInterval: 0.02)
-                try? await Task.sleep(nanoseconds: 100_000_000)
-            }
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            print(resultSlots)
-            isResultPresented = true
+    func setupSlots(columns: Int = 3, rows: Int = 3, columnSize: CGFloat = 100) {
+        isResultPresented = false
+        slotColumnsVM = []
+        self.rows = rows
+        self.slotColumnSize = columnSize
+        for _ in 0..<columns {
+            slotColumnsVM.append(SlotColumnViewModel(size: columnSize))
         }
     }
+    
+    @MainActor func spin() async {
+        var allLines = [[(Int, Int)]]()
+        for row in 0..<rows {
+            allLines += generateLines(startingAt: row, col: 0)
+        }
+        
+        let winningLine = allLines.randomElement()!
+        
+        winFlags = [[Bool]]()
+        winLines = [[(Int, Int)]]()
+        isResultPresented = false
+        
+        await withTaskGroup(of: Void.self) { group in
+            if guaranteedWin {
+                let winningTile = Int.random(in: 1...7)
+                var array = Array(1...7)
+                array.removeAll(where: { $0 == winningTile })
+                
+                for column in 0..<slotColumnsVM.count {
+                    for row in 0..<slotColumnsVM[column].slots.count {
+                        if winningLine.contains(where: { $0.0 == row && $0.1 == column }) {
+                            slotColumnsVM[column].slots[row] = winningTile
+                        } else {
+                            slotColumnsVM[column].slots[row] = array.randomElement()!
+                        }
+                    }
+                    group.addTask {
+                        await self.slotColumnsVM[column].spin(count: 70, initialTimeInterval: 0.02)
+                    }
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                }
+                
+            } else {
+                for slotColumn in slotColumnsVM {
+                    for i in 0..<slotColumn.slots.count {
+                        slotColumn.slots[i] = Int.random(in: 1...7)
+                    }
+                    group.addTask {
+                        await slotColumn.spin(count: 70, initialTimeInterval: 0.02)
+                    }
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                }
+            }
+        }
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        print(resultSlots)
+        setWinFlags()
+        print(winLines)
+        isResultPresented = true
+    }
+}
+
+#Preview {
+    ContentView()
 }
